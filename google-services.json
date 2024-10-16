@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "685883143487",
+    "firebase_url": "https://revmate-c8170-default-rtdb.firebaseio.com",
+    "project_id": "revmate-c8170",
+    "storage_bucket": "revmate-c8170.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:685883143487:android:bb0fb5ed5475712caf0f8a",
+        "android_client_info": {
+          "package_name": "com.example.dummy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSPz9Vq73PhIde8MR1h_opiOTJ5vdjcBA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
