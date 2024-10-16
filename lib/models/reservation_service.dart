@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
+import 'package:image/image.dart' as img;
 
 class ReservationService {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
@@ -63,5 +66,43 @@ class ReservationService {
     }
 
     return userReservations;
+  }
+
+  // OCR 처리 로직 추가
+  Future<String?> runOCR(String imagePath) async {
+    try {
+      String text = await FlutterTesseractOcr.extractText(
+        imagePath,
+        language: 'kor',
+        args: {
+          "psm": "6",
+          "preserve_interword_spaces": "1",
+          "tessedit_char_whitelist": "0123456789:",
+          "ocr_engine_mode": "1",
+        },
+      );
+      return text;
+    } catch (e) {
+      throw Exception('OCR 처리에 실패했습니다: $e');
+    }
+  }
+
+  // 이미지 처리 로직 추가
+  Future<File?> processImage(File imageFile) async {
+    try {
+      final image = img.decodeImage(imageFile.readAsBytesSync());
+      if (image != null) {
+        final scaledImage = img.copyResize(image, width: image.width * 2, height: image.height * 2);
+        final croppedImage = img.copyCrop(scaledImage, x: 0, y: 1500, width: 690, height: 74);
+        final bwImage = img.grayscale(croppedImage);
+        img.adjustColor(bwImage, contrast: 1.5);
+
+        final processedFile = File('${imageFile.path}_processed.jpg')..writeAsBytesSync(img.encodeJpg(bwImage));
+        return processedFile;
+      }
+    } catch (e) {
+      throw Exception('이미지 처리에 실패했습니다: $e');
+    }
+    return null;
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:RevMate/views/calendar_widget.dart';
+import 'package:RevMate/views/reservation/calendar_widget.dart';
 import 'package:RevMate/controllers/reserve_controller.dart';
 import 'package:RevMate/models/reservation_service.dart';
 import 'package:RevMate/views/widgets/time_select_widget.dart';

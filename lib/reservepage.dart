@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
 import 'dart:io';
-import 'availabletimespage.dart'; // 새로운 페이지 임포트
+import 'availabletimespage.dart';
 
 class ReservePage extends StatefulWidget {
   const ReservePage({super.key});

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'status_page.dart';
-import 'reserve_page.dart';
+import '../reservation/reserve_page.dart';
 import 'my_page.dart';
 import 'package:RevMate/views/widgets/animated_page_route.dart';
-import 'logout_dialog.dart';
+import '../login/logout_dialog.dart';
 
 class MainPage extends StatelessWidget {
   const MainPage({Key? key}) : super(key: key);
