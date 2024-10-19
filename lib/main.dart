@@ -6,6 +6,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:permission_handler/permission_handler.dart'; // Permission handler 추가
 import 'package:RevMate/views/login/login_page.dart';
 import 'package:RevMate/views/main/main_page.dart';
 
@@ -21,6 +22,7 @@ void main() async {
     // FCM 설정 및 토큰 처리
     await _initializeFCM();
 
+    // FCM 서비스 초기화
     FCMService();
 
     runApp(const MyApp());
@@ -38,6 +40,10 @@ void main() async {
 // FCM 초기화 및 토큰 처리 함수
 Future<void> _initializeFCM() async {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // 알림 권한 요청
+  await _requestNotificationPermission();
+
   User? user = FirebaseAuth.instance.currentUser;
 
   // 로그인된 사용자에 대해 FCM 토큰 저장
@@ -55,6 +61,23 @@ Future<void> _initializeFCM() async {
       await saveTokenToDatabase(refreshedUser.uid, newToken);
     }
   });
+}
+
+// 알림 권한 요청 함수 (Android, iOS 모두 대응)
+Future<void> _requestNotificationPermission() async {
+  // 알림 권한 요청
+  PermissionStatus status = await Permission.notification.request();
+
+  if (status.isGranted) {
+    print('알림 권한 허용됨');
+  } else if (status.isDenied) {
+    print('알림 권한 거부됨');
+    // 사용자가 권한을 거부한 경우 설정에서 권한을 다시 요청할 수 있도록 안내
+    openAppSettings();
+  } else if (status.isPermanentlyDenied) {
+    print('알림 권한 영구적으로 거부됨');
+    openAppSettings(); // 권한을 영구적으로 거부한 경우 설정 화면으로 이동
+  }
 }
 
 // FCM 토큰을 Firebase Realtime Database에 저장하는 함수
