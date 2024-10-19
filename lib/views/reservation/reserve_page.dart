@@ -25,26 +25,26 @@ class _ReservePageState extends State<ReservePage> {
 
   List<String> get equipmentList => _reserveController.equipmentList;
 
-  Future<void> _processImageAndRunOCR(File imageFile) async {
+  // 이미지 업로드 후 OCR 적용 로직
+  Future<void> _uploadImageAndRunOCR(File imageFile) async {
     setState(() {
       _isLoading = true;
     });
 
-    final processedFile = await _reserveController.processImage(imageFile);
-    if (processedFile != null) {
-      setState(() {
-        _processedFile = processedFile;
-      });
+    try {
+      // 1. 이미지 업로드
+      await _reserveController.uploadImage(imageFile);
 
-      final ocrText = await _reserveController.runOCR(processedFile.path);
+      // 2. 이미지 업로드 후 OCR 처리
+      final ocrText = await _reserveController.runOCR(imageFile.path);
       setState(() {
         _ocrText = ocrText;
         _isLoading = false;
       });
-    } else {
+    } catch (e) {
       setState(() {
         _isLoading = false;
-        _ocrText = 'OCR 인식 실패';
+        _ocrText = '이미지 업로드 및 OCR 실패: $e';
       });
     }
   }
@@ -87,13 +87,13 @@ class _ReservePageState extends State<ReservePage> {
               onPressed: () async {
                 final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
                 if (pickedFile != null) {
-                  await _processImageAndRunOCR(File(pickedFile.path));
+                  // 3. 업로드 및 OCR 실행
+                  await _uploadImageAndRunOCR(File(pickedFile.path));
                 }
               },
               child: const Text('도면 이미지 선택'),
             ),
             if (_isLoading) const CircularProgressIndicator(),
-            if (_processedFile != null) Image.file(_processedFile!),
             if (_ocrText != null) Text('인식된 출력 예상시간: $_ocrText'),
             const SizedBox(height: 24.0),
             const Padding(
