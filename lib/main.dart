@@ -1,3 +1,4 @@
+import 'package:RevMate/models/fcm_service.dart';
 import 'package:RevMate/models/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,8 @@ void main() async {
 
     // FCM 설정 및 토큰 처리
     await _initializeFCM();
+
+    FCMService();
 
     runApp(const MyApp());
   } catch (e) {
