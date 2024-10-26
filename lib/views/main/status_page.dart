@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:RevMate/views/widgets/equipment_list_item.dart';
-import 'package:RevMate/models/reservation_service.dart';
+import 'package:RevMate/views/widgets/equipment_list_item.dart'; // EquipmentListItem import
 import 'package:RevMate/controllers/status_controller.dart';
+import 'package:RevMate/models/reservation_service.dart';
 
 class StatusPage extends StatelessWidget {
   final List<String> equipmentNames = [
