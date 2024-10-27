@@ -45,10 +45,23 @@ class _ReservePageState extends State<ReservePage> {
       setState(() {
         _ocrText = '이미지 업로드 및 OCR 실패: $e';
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('OCR 처리 중 오류 발생: $e')),
+      );
     } finally {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  void _navigateToPage(Widget page) {
+    try {
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => page));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('페이지 이동 중 오류 발생: $e')),
+      );
     }
   }
 
@@ -112,38 +125,44 @@ class _ReservePageState extends State<ReservePage> {
             _buildOptionButton(
               '가장 빠른 일자', '가까운 시간을 추천합니다.', 'assets/available_icon.png',
                   () {
-                if (_selectedEquipment != null && _ocrText != null) {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => AvailableTimesPage(
-                      equipment: _selectedEquipment!,
-                      duration: int.parse(_ocrText!.split(':')[0]),
-                    ),
+                if (_selectedEquipment != null && _ocrText != null && _processedFile != null) {
+                  _navigateToPage(AvailableTimesPage(
+                    equipment: _selectedEquipment!,
+                    duration: int.parse(_ocrText!.split(':')[0]),
                   ));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('장비와 OCR 데이터가 필요합니다.')),
+                  );
                 }
               },
             ),
             _buildOptionButton(
               '마감 우선', '마감일에 맞춰 자동으로 예약합니다.', 'assets/deadline_icon.png',
                   () {
-                if (_selectedEquipment != null && _ocrText != null) {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => DeadlineWidget(
-                      equipment: _selectedEquipment!,
-                      ocrText: _ocrText!,
-                    ),
+                if (_selectedEquipment != null && _ocrText != null && _processedFile != null) {
+                  _navigateToPage(DeadlineWidget(
+                    equipment: _selectedEquipment!,
+                    ocrText: _ocrText!,
                   ));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('장비와 OCR 데이터가 필요합니다.')),
+                  );
                 }
               },
             ),
             _buildOptionButton(
               '자율', '자유롭게 날짜를 선택합니다.', 'assets/reivese_icon.png',
                   () {
-                if (_selectedEquipment != null && _ocrText != null) {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => RevisedPage(
-                      equipment: _selectedEquipment!,
-                    ),
+                if (_selectedEquipment != null && _ocrText != null && _processedFile != null) {
+                  _navigateToPage(RevisedPage(
+                    equipment: _selectedEquipment!,
                   ));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('장비와 OCR 데이터가 필요합니다.')),
+                  );
                 }
               },
             ),

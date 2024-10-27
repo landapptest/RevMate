@@ -11,20 +11,31 @@ class AvailableTimesController {
 
     while (foundTimes.length < 3) {
       String dateString = _formatDate(currentDate);
-      Map<String, bool> reservedTimes = await _reservationService.fetchReservedTimes(equipment, dateString);
+      Map<String, bool> reservedTimes = await _reservationService.fetchReservedTimes(equipment, dateString, isRequest: true);
 
       List<String> possibleTimes = _getPossibleTimes(currentDate, reservedTimes, duration);
       if (possibleTimes.isNotEmpty) {
         foundTimes.addAll(possibleTimes.take(3 - foundTimes.length));
       }
 
-      currentDate = currentDate.add(Duration(days: 1));  // 다음 날로 이동
+      currentDate = currentDate.add(Duration(days: 1));
     }
 
     return foundTimes;
   }
 
-  // 필요한 유틸리티 함수들
+  Future<void> reserveTimes(String equipment, String selectedTime, int duration) async {
+    final DateTime now = DateTime.now();
+    final String date = _formatDate(now);
+
+    List<String> times = List.generate(duration, (index) {
+      int startHour = int.parse(selectedTime.split(':')[0]) + index;
+      return "${startHour.toString().padLeft(2, '0')}:00 - ${(startHour + 1).toString().padLeft(2, '0')}:00";
+    });
+
+    await _reservationService.reserveTimes(equipment, date, times, isRequest: true);
+  }
+
   String _formatDate(DateTime date) {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
