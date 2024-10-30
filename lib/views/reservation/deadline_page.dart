@@ -5,12 +5,12 @@ import 'package:RevMate/models/reservation_service.dart';
 
 class DeadlineWidget extends StatefulWidget {
   final String equipment;
-  final String ocrText; // ocrText 추가
+  final String ocrText; // OCR에서 받아온 시간
 
   const DeadlineWidget({
     Key? key,
     required this.equipment,
-    required this.ocrText, // ocrText 추가
+    required this.ocrText,
   }) : super(key: key);
 
   @override
@@ -21,61 +21,38 @@ class _DeadlineWidgetState extends State<DeadlineWidget> {
   DateTime selectedDate = DateTime.now();
   final ReserveController _reserveController = ReserveController(ReservationService());
 
-  @override
-  void initState() {
-    super.initState();
-    print("DeadlineWidget initialized with equipment: ${widget.equipment}, OCR: ${widget.ocrText}");
-  }
-
   void _handleDateSelected(DateTime date) {
     setState(() {
       selectedDate = date;
-      print("Selected date updated: $selectedDate");
     });
   }
 
   void _confirmReservation() {
-    try {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('예약 확인'),
-            content: Text('선택한 날짜로 예약을 진행하시겠습니까?\n날짜: $selectedDate\n예상 시간: ${widget.ocrText}시간'), // ocrText 포함
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('취소'),
-              ),
-              TextButton(
-                onPressed: () {
-                  try {
-                    int duration = int.parse(widget.ocrText.split(':')[0]);
-                    List<String> times = List.generate(
-                      duration,
-                          (index) => '${9 + index}:00 - ${10 + index}:00', // 시간 계산 로직
-                    );
-                    print("Reserving times: $times on $selectedDate");
-                    _reserveController.reserveTime(widget.equipment, selectedDate.toString(), times);
-                    Navigator.of(context).pop();
-                    print("Reservation confirmed successfully");
-                  } catch (e) {
-                    print("Error while confirming reservation: $e");
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('예약 중 오류가 발생했습니다: $e')),
-                    );
-                  }
-                },
-                child: const Text('확인'),
-              ),
-            ],
+    if (widget.equipment != null && widget.ocrText != null) {
+      try {
+        String date = "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+
+        // OCR로 얻은 예상 시간을 바탕으로 고정된 시간대 생성
+        int duration = int.parse(widget.ocrText.split(':')[0]);
+        List<String> formattedTimes = List.generate(duration, (index) {
+          return formatTimeSlot(
+              "${9 + index}", // 예약 시작 시간 예시로 오전 9시부터 시작
+              "${9 + index + 1}"
           );
-        },
-      );
-    } catch (e) {
-      print("Error displaying reservation dialog: $e");
+        });
+
+        _reserveController.reserveTime(widget.equipment, date, formattedTimes);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('예약이 완료되었습니다.')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('예약에 실패했습니다: $e')),
+        );
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('예약 확인 중 오류가 발생했습니다: $e')),
+        const SnackBar(content: Text('장비와 OCR 데이터가 필요합니다.')),
       );
     }
   }
@@ -88,7 +65,7 @@ class _DeadlineWidgetState extends State<DeadlineWidget> {
         children: [
           CalendarWidget(
             selectedDate: selectedDate,
-            onDateSelected: _handleDateSelected,
+            onDateSelected: _handleDateSelected, selectedDay: null, onDaySelected: (DateTime , int ) {  },
           ),
           ElevatedButton(
             onPressed: _confirmReservation,
@@ -97,5 +74,9 @@ class _DeadlineWidgetState extends State<DeadlineWidget> {
         ],
       ),
     );
+  }
+
+  String formatTimeSlot(String startTime, String endTime) {
+    return "${startTime.padLeft(2, '0')}:00 - ${endTime.padLeft(2, '0')}:00";
   }
 }

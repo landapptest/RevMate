@@ -18,16 +18,9 @@ class _RevisedPageState extends State<RevisedPage> {
   List<String> selectedTimes = [];
   final ReserveController _reserveController = ReserveController(ReservationService());
 
-  @override
-  void initState() {
-    super.initState();
-    print("RevisedPage initialized with equipment: ${widget.equipment}");
-  }
-
   void _handleDateSelected(DateTime date) {
     setState(() {
       selectedDate = date;
-      print("Selected date updated: $selectedDate");
     });
   }
 
@@ -38,26 +31,32 @@ class _RevisedPageState extends State<RevisedPage> {
       } else {
         selectedTimes.add(time);
       }
-      print("Selected times updated: $selectedTimes");
     });
   }
 
   void _confirmReservation() {
-    try {
-      if (selectedTimes.isEmpty) {
-        throw Exception("No times selected");
+    if (selectedTimes.isNotEmpty) {
+      try {
+        String date = "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+
+        // 예약할 시간을 고정된 형식으로 설정
+        List<String> formattedTimes = selectedTimes.map((time) {
+          final startHour = int.parse(time.split(':')[0]);
+          final endHour = startHour + 1;
+          return "${startHour.toString().padLeft(2, '0')}:00 - ${endHour.toString().padLeft(2, '0')}:00";
+        }).toList();
+
+        _reserveController.reserveTime(widget.equipment, date, formattedTimes);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('예약이 완료되었습니다.')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('예약에 실패했습니다: $e')),
+        );
       }
-      print("Reserving times: $selectedTimes on $selectedDate");
-      _reserveController.reserveTime(widget.equipment, selectedDate.toString(), selectedTimes);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('예약이 완료되었습니다.')),
-      );
-      print("Reservation confirmed successfully");
-    } catch (e) {
-      print("Error confirming reservation: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('예약 중 오류가 발생했습니다: $e')),
-      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('예약할 시간을 선택해주세요.')),);
     }
   }
 
@@ -69,12 +68,15 @@ class _RevisedPageState extends State<RevisedPage> {
         children: [
           CalendarWidget(
             selectedDate: selectedDate,
-            onDateSelected: _handleDateSelected,
+            onDateSelected: _handleDateSelected, selectedDay: null, onDaySelected: (DateTime , int ) {  },
           ),
+          const Padding(padding: EdgeInsets.all(16.0),),
           TimeSelectWidget(
             selectedTimes: selectedTimes,
-            toggleTime: _toggleTime,
+            toggleTime: _toggleTime, reservedTimes: {},
+            selectedDate: selectedDate,
           ),
+          const Padding(padding: EdgeInsets.all(16.0),),
           ElevatedButton(
             onPressed: _confirmReservation,
             child: const Text('예약하기'),
@@ -82,5 +84,9 @@ class _RevisedPageState extends State<RevisedPage> {
         ],
       ),
     );
+  }
+
+  String formatTimeSlot(String startTime, String endTime) {
+    return "${startTime.padLeft(2, '0')}:00 - ${endTime.padLeft(2, '0')}:00";
   }
 }
