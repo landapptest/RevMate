@@ -23,8 +23,6 @@ class _ReservePageState extends State<ReservePage> {
   bool _isLoading = false;
   File? _processedFile;
 
-  List<String> get equipmentList => _reserveController.equipmentList;
-
   Future<void> _uploadImageAndRunOCR(File imageFile) async {
     setState(() {
       _isLoading = true;
@@ -81,19 +79,75 @@ class _ReservePageState extends State<ReservePage> {
             ),
             Center(
               child: DropdownButton<String>(
-                items: equipmentList.map((String equipment) {
-                  return DropdownMenuItem<String>(
-                    value: equipment,
-                    child: Text(equipment),
-                  );
-                }).toList(),
+                items: const [
+                  DropdownMenuItem<String>(
+                    value: 'S4',
+                    child: Text('싱글플러스_04'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'S5',
+                    child: Text('싱글플러스_05'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'S6',
+                    child: Text('싱글플러스_06'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'S7',
+                    child: Text('싱글플러스_07'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'cubstyle01',
+                    child: Text('스타일_01'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'cubstyle02',
+                    child: Text('스타일_02'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'cubstyle03',
+                    child: Text('스타일_03'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'ender5_01',
+                    child: Text('엔더5_01'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'ender5_02',
+                    child: Text('엔더5_02'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'sin_01',
+                    child: Text('신도리코_01'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'sin_02',
+                    child: Text('신도리코_02'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'sin_03',
+                    child: Text('신도리코_03'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'sin_04',
+                    child: Text('신도리코_04'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: '12*9',
+                    child: Text('레이저커터12*9'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: '9*6',
+                    child: Text('레이저커터9*6'),
+                  ),
+                ],
                 onChanged: (value) {
                   setState(() {
                     _selectedEquipment = value;
                   });
                 },
-                value: _selectedEquipment,
                 hint: const Text('장비 선택'),
+                value: _selectedEquipment,
               ),
             ),
             const SizedBox(height: 24.0),

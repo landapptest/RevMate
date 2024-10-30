@@ -18,9 +18,16 @@ class _RevisedPageState extends State<RevisedPage> {
   List<String> selectedTimes = [];
   final ReserveController _reserveController = ReserveController(ReservationService());
 
+  @override
+  void initState() {
+    super.initState();
+    print("RevisedPage initialized with equipment: ${widget.equipment}");
+  }
+
   void _handleDateSelected(DateTime date) {
     setState(() {
       selectedDate = date;
+      print("Selected date updated: $selectedDate");
     });
   }
 
@@ -31,12 +38,26 @@ class _RevisedPageState extends State<RevisedPage> {
       } else {
         selectedTimes.add(time);
       }
+      print("Selected times updated: $selectedTimes");
     });
   }
 
   void _confirmReservation() {
-    if (selectedTimes.isNotEmpty) {
+    try {
+      if (selectedTimes.isEmpty) {
+        throw Exception("No times selected");
+      }
+      print("Reserving times: $selectedTimes on $selectedDate");
       _reserveController.reserveTime(widget.equipment, selectedDate.toString(), selectedTimes);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('예약이 완료되었습니다.')),
+      );
+      print("Reservation confirmed successfully");
+    } catch (e) {
+      print("Error confirming reservation: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('예약 중 오류가 발생했습니다: $e')),
+      );
     }
   }
 

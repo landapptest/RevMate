@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:RevMate/controllers/calendar_controller.dart';
 
 class CalendarWidget extends StatefulWidget {
   final DateTime selectedDate;
@@ -12,12 +11,24 @@ class CalendarWidget extends StatefulWidget {
 }
 
 class _CalendarWidgetState extends State<CalendarWidget> {
-  late CalendarController _controller;
+  late DateTime displayedDate;
 
   @override
   void initState() {
     super.initState();
-    _controller = CalendarController(widget.selectedDate);
+    displayedDate = widget.selectedDate;
+  }
+
+  void goToPreviousMonth() {
+    setState(() {
+      displayedDate = DateTime(displayedDate.year, displayedDate.month - 1);
+    });
+  }
+
+  void goToNextMonth() {
+    setState(() {
+      displayedDate = DateTime(displayedDate.year, displayedDate.month + 1);
+    });
   }
 
   @override
@@ -28,20 +39,12 @@ class _CalendarWidgetState extends State<CalendarWidget> {
           children: [
             IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                setState(() {
-                  _controller.goToPreviousMonth();
-                });
-              },
+              onPressed: goToPreviousMonth,
             ),
-            Text("${_controller.displayedDate.month}월 ${_controller.displayedDate.year}"),
+            Text("${displayedDate.month}월 ${displayedDate.year}"),
             IconButton(
               icon: const Icon(Icons.arrow_forward),
-              onPressed: () {
-                setState(() {
-                  _controller.goToNextMonth();
-                });
-              },
+              onPressed: goToNextMonth,
             ),
           ],
         ),
@@ -49,11 +52,13 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         GridView.builder(
           shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
+          itemCount: DateTime(displayedDate.year, displayedDate.month + 1, 0).day,
           itemBuilder: (context, index) {
             final day = index + 1;
+            final date = DateTime(displayedDate.year, displayedDate.month, day);
             return GestureDetector(
               onTap: () {
-                widget.onDateSelected(DateTime(_controller.displayedDate.year, _controller.displayedDate.month, day));
+                widget.onDateSelected(date);
               },
               child: Container(
                 alignment: Alignment.center,

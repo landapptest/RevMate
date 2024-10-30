@@ -18,7 +18,7 @@ class ReservationService {
     } else if (equipment.startsWith('12*9') || equipment.startsWith('9*6')) {
       return isRequest ? 'reservation_request/laser cutter/$equipment' : 'reservation/laser cutter/$equipment';
     } else {
-      throw Exception('Unknown equipment type');
+      throw Exception('Unknown equipment type: $equipment');
     }
   }
 
