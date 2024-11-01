@@ -1,56 +1,71 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 admin.initializeApp();
 
-// reservation_request에서 reservation으로 상태가 변경될 때 트리거
-exports.sendNotificationOnReservation = functions.database
-    .ref('/reservation/{category}/{equipment}/{date}/{time}')
-    .onUpdate((change, context) => {
-        const beforeData = change.before.val(); // 변경 전 데이터
-        const afterData = change.after.val();   // 변경 후 데이터
+exports.notifyOnReservationCompletion = functions.database
+  .ref("/reservation_request/{requestId}")
+  .onDelete((snapshot, context) => {
+    const requestId = context.params.requestId;
+    console.log(`예약 ID ${requestId} 삭제 감지`); // <- 추가된 디버깅 메시지
 
-        // 예약 상태가 변경되었는지 확인
-        if (!beforeData && afterData) {
-            const reservationData = afterData;  // 변경 후 데이터 (예약 정보)
-            const category = context.params.category;
-            const equipment = context.params.equipment;
-            const date = context.params.date;
-            const time = context.params.time;
-            const uid = reservationData.uid;
-            const times = reservationData.times; // 예약 시간
+    const payload = {
+      notification: {
+        title: "예약이 완료되었습니다",
+        body: `예약 ID ${requestId}이(가) 완료되었습니다. 확인해 주세요.`,
+      },
+    };
 
-            // FCM 토큰을 가져오는 함수
-            return getTokenFromUid(uid).then(userToken => {
-                if (userToken) {
-                    const payload = {
-                        notification: {
-                            title: `${category} 예약 승인`,
-                            body: `${equipment}의 ${date} 날짜에 ${times[0]} 예약이 승인되었습니다.`,
-                        },
-                    };
+    return admin
+      .database()
+      .ref(`/users/`)
+      .once("value")
+      .then((snapshot) => {
+        const tokens = [];
+        snapshot.forEach((childSnapshot) => {
+          const token = childSnapshot.val().token;
+          if (token) {
+            tokens.push(token);
+          }
+        });
+        const uniqueTokens = [...new Set(tokens)]; // 중복 토큰 제거
+        console.log(`FCM 토큰들 (중복 제거됨): ${uniqueTokens}`); // <- 추가된 디버깅 메시지
+        return uniqueTokens;
+      })
+      .then((uniqueTokens) => {
+        if (uniqueTokens.length > 0) {
+          console.log("푸시 알림 전송 시도 중"); // <- 추가된 디버깅 메시지
 
-                    // 사용자에게 푸시 알림 전송
-                    return admin.messaging().sendToDevice(userToken, payload)
-                        .then(response => {
-                            console.log('FCM 푸시 알림 전송 성공:', response);
-                        })
-                        .catch(error => {
-                            console.error('푸시 알림 전송 실패:', error);
-                        });
-                } else {
-                    console.error('FCM 토큰을 찾을 수 없습니다.');
-                    return null;
-                }
+          // 개별적으로 `send` 메서드를 사용하여 각 토큰에 알림 전송
+          const sendPromises = uniqueTokens.map((token) => {
+            const message = {
+              token: token,
+              notification: payload.notification,
+            };
+
+            return admin.messaging().send(message)
+              .then((response) => {
+                console.log(`토큰 ${token} 전송 성공:`, response);
+                return response;
+              })
+              .catch((error) => {
+                console.error(`토큰 ${token} 전송 실패:`, error);
+              });
+          });
+
+          // 모든 알림 전송이 완료될 때까지 기다림
+          return Promise.all(sendPromises)
+            .then((responses) => {
+              console.log("모든 푸시 알림 전송 완료:", responses);
+              return responses;
+            })
+            .catch((error) => {
+              console.error("푸시 알림 전송 중 오류 발생:", error);
             });
-        } else {
-            console.log('변경 사항이 없습니다.');
-            return null;
         }
-    });
-
-// 예시: UID로 FCM 토큰을 가져오는 함수 (비동기 함수로 변경)
-function getTokenFromUid(uid) {
-    return admin.database().ref(`/users/${uid}/token`).once('value').then(snapshot => {
-        return snapshot.val(); // FCM 토큰 반환
-    });
-}
+        console.log("토큰이 없어서 알림을 전송하지 않음"); // <- 추가된 디버깅 메시지
+        return null;
+      })
+      .catch((error) => {
+        console.error("토큰 가져오기 실패:", error);
+      });
+  });

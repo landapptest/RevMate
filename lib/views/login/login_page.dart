@@ -21,7 +21,7 @@ class LoginPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/icons/logo.png', // 경로 유지
+              'assets/icons_logo.png', // 경로 유지
               height: 100,
             ),
             const SizedBox(height: 20),
