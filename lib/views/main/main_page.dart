@@ -13,6 +13,7 @@ class MainPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Revmate'),
+        toolbarHeight: 70,
         actions: [
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
