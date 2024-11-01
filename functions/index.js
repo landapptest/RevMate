@@ -6,7 +6,7 @@ exports.notifyOnReservationCompletion = functions.database
   .ref("/reservation_request/{requestId}")
   .onDelete((snapshot, context) => {
     const requestId = context.params.requestId;
-    console.log(`예약 ID ${requestId} 삭제 감지`); // <- 추가된 디버깅 메시지
+    console.log(`예약 ID ${requestId} 삭제 감지`);
 
     const payload = {
       notification: {
@@ -20,20 +20,22 @@ exports.notifyOnReservationCompletion = functions.database
       .ref(`/users/`)
       .once("value")
       .then((snapshot) => {
+        console.log("유저 데이터 로드 성공");
         const tokens = [];
         snapshot.forEach((childSnapshot) => {
           const token = childSnapshot.val().token;
+          console.log(`찾은 토큰: ${token}`);
           if (token) {
             tokens.push(token);
           }
         });
         const uniqueTokens = [...new Set(tokens)]; // 중복 토큰 제거
-        console.log(`FCM 토큰들 (중복 제거됨): ${uniqueTokens}`); // <- 추가된 디버깅 메시지
+        console.log(`FCM 토큰들 (중복 제거됨): ${uniqueTokens}`);
         return uniqueTokens;
       })
       .then((uniqueTokens) => {
         if (uniqueTokens.length > 0) {
-          console.log("푸시 알림 전송 시도 중"); // <- 추가된 디버깅 메시지
+          console.log("푸시 알림 전송 시도 중");
 
           // 개별적으로 `send` 메서드를 사용하여 각 토큰에 알림 전송
           const sendPromises = uniqueTokens.map((token) => {
@@ -62,7 +64,7 @@ exports.notifyOnReservationCompletion = functions.database
               console.error("푸시 알림 전송 중 오류 발생:", error);
             });
         }
-        console.log("토큰이 없어서 알림을 전송하지 않음"); // <- 추가된 디버깅 메시지
+        console.log("토큰이 없어서 알림을 전송하지 않음");
         return null;
       })
       .catch((error) => {
