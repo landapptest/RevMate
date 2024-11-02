@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:RevMate/controllers/login_controller.dart';
 import 'package:RevMate/views/widgets/styles.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:RevMate/route.dart';
 
 class LoginPage extends StatelessWidget {
   final LoginController _loginController = LoginController();
@@ -22,7 +23,7 @@ class LoginPage extends StatelessWidget {
           children: [
             Image.asset(
               'assets/icons_logo.png', // 경로 유지
-              height: 100,
+              height: 200,
             ),
             const SizedBox(height: 20),
             TextField(
@@ -58,7 +59,7 @@ class LoginPage extends StatelessWidget {
                         _emailController.text.trim(),
                         _passwordController.text.trim(),
                       );
-                      Navigator.pushReplacementNamed(context, '/main'); // 수정된 라우트
+                      Navigator.pushReplacementNamed(context, AppRoutes.mainPage); // 수정된 라우트
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('로그인 실패: $e')),

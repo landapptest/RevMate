@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:RevMate/controllers/available_times_controller.dart';
 import 'package:RevMate/models/reservation_service.dart';
+import 'package:RevMate/route.dart';
 
 class AvailableTimesPage extends StatefulWidget {
   final String equipment;
@@ -27,7 +28,8 @@ class _AvailableTimesPageState extends State<AvailableTimesPage> {
 
   Future<void> fetchTimes() async {
     try {
-      List<String> times = await _controller.fetchAvailableTimes(widget.equipment, widget.duration);
+      List<String> times = await _controller.fetchAvailableTimes(
+          widget.equipment, widget.duration);
       setState(() {
         availableTimes = times;
         isLoading = false;
@@ -61,14 +63,11 @@ class _AvailableTimesPageState extends State<AvailableTimesPage> {
     }
 
     try {
-      // 선택된 모든 시간에 대해 예약 요청
       for (String selectedTime in selectedTimes) {
-        await _controller.reserveTimes(widget.equipment, selectedTime, widget.duration);
+        await _controller.reserveTimes(
+            widget.equipment, selectedTime, widget.duration);
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('예약이 완료되었습니다.')),
-      );
-      Navigator.pop(context); // 예약 완료 후 이전 화면으로 돌아감
+      _showConfirmationDialog();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('예약에 실패했습니다: $e')),
@@ -76,71 +75,100 @@ class _AvailableTimesPageState extends State<AvailableTimesPage> {
     }
   }
 
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('예약 완료'),
+          content: const Text('예약이 완료되었습니다. 메인 페이지로 이동합니다.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.mainPage,
+                  (Route<dynamic> route) => false,
+                );
+              },
+              child: const Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('예약 가능한 시간 선택'),
+        title: const Text('가장 빠른 일자'),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text(
-              '원하는 시간을 선택하세요',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 3,
-                ),
-                itemCount: availableTimes.length,
-                itemBuilder: (context, index) {
-                  final time = availableTimes[index];
-                  final isSelected = selectedTimes.contains(time);
-                  return GestureDetector(
-                    onTap: () => toggleTimeSelection(time),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected ? Colors.blueAccent : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected ? Colors.blueAccent : Colors.grey,
-                        ),
-                        boxShadow: [
-                          if (isSelected)
-                            BoxShadow(
-                              color: Colors.blueAccent.withOpacity(0.3),
-                              spreadRadius: 2,
-                              blurRadius: 5,
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const Text(
+                    '원하는 시간을 선택하세요',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 3,
+                      ),
+                      itemCount: availableTimes.length,
+                      itemBuilder: (context, index) {
+                        final time = availableTimes[index];
+                        final isSelected = selectedTimes.contains(time);
+                        return GestureDetector(
+                          onTap: () => toggleTimeSelection(time),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color:
+                                  isSelected ? Colors.blueAccent : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected
+                                    ? Colors.blueAccent
+                                    : Colors.grey,
+                              ),
+                              boxShadow: [
+                                if (isSelected)
+                                  BoxShadow(
+                                    color: Colors.blueAccent.withOpacity(0.3),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                  ),
+                              ],
                             ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          time,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : Colors.black87,
+                            child: Center(
+                              child: Text(
+                                time,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
@@ -151,7 +179,7 @@ class _AvailableTimesPageState extends State<AvailableTimesPage> {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Text('예약 요청', style: TextStyle(fontSize: 18)),
+          child: const Text('예약', style: TextStyle(fontSize: 18)),
         ),
       ),
     );

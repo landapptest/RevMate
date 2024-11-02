@@ -84,7 +84,7 @@ class StatusPage extends StatelessWidget {
                           ),
                         ),
                         Image.asset(
-                          'assets/equipment_$index.png',
+                          'assets/equipment_${index + 1}.png',
                           width: 100,
                           height: 80,
                           errorBuilder: (context, error, stackTrace) {
