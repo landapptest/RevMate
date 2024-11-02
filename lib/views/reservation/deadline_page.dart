@@ -8,9 +8,7 @@ class DeadlineWidget extends StatefulWidget {
   final String equipment;
   final String ocrText;
 
-  const DeadlineWidget(
-      {Key? key, required this.equipment, required this.ocrText})
-      : super(key: key);
+  const DeadlineWidget({Key? key, required this.equipment, required this.ocrText}) : super(key: key);
 
   @override
   _DeadlineWidgetState createState() => _DeadlineWidgetState();
@@ -18,8 +16,7 @@ class DeadlineWidget extends StatefulWidget {
 
 class _DeadlineWidgetState extends State<DeadlineWidget> {
   DateTime selectedDate = DateTime.now();
-  final ReserveController _reserveController =
-      ReserveController(ReservationService());
+  final ReserveController _reserveController = ReserveController(ReservationService());
 
   void _handleDateSelected(DateTime date) {
     setState(() {
@@ -29,12 +26,55 @@ class _DeadlineWidgetState extends State<DeadlineWidget> {
 
   void _confirmReservation() {
     if (widget.equipment.isNotEmpty && widget.ocrText.isNotEmpty) {
-      String date =
-          "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+      String date = "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
       int duration = int.parse(widget.ocrText.split(':')[0]);
       String startTime = formatTime(9);
       String endTime = formatTime(9 + duration);
 
+      // 예약 확인 다이얼로그
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('예약 확인'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("날짜: $date"),
+                Text("시간: $startTime - $endTime"),
+                const SizedBox(height: 16),
+                const Text('이 시간으로 예약하시겠습니까?'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('아니오'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _completeReservation(date, startTime, endTime);
+                },
+                child: const Text('예'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('장비와 OCR 데이터가 필요합니다.')),
+      );
+    }
+  }
+
+  void _completeReservation(String date, String startTime, String endTime) {
+    try {
+      _reserveController.reserveTime(widget.equipment, date, ["$startTime - $endTime"]);
+
+      // 예약 완료 다이얼로그
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -46,7 +86,7 @@ class _DeadlineWidgetState extends State<DeadlineWidget> {
                 onPressed: () {
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     AppRoutes.mainPage,
-                    (Route<dynamic> route) => false,
+                        (Route<dynamic> route) => false,
                   );
                 },
                 child: const Text('확인'),
@@ -55,19 +95,6 @@ class _DeadlineWidgetState extends State<DeadlineWidget> {
           );
         },
       );
-
-      _completeReservation(date, startTime, endTime);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('장비와 OCR 데이터가 필요합니다.')),
-      );
-    }
-  }
-
-  void _completeReservation(String date, String startTime, String endTime) {
-    try {
-      _reserveController
-          .reserveTime(widget.equipment, date, ["$startTime - $endTime"]);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('예약에 실패했습니다: $e')),
