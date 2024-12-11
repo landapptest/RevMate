@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:RevMate/views/widgets/equipment_list_item.dart';
-import 'package:RevMate/models/reservation_service.dart';
 import 'package:RevMate/controllers/status_controller.dart';
+import 'package:RevMate/models/reservation_service.dart';
 
 class StatusPage extends StatelessWidget {
   final List<String> equipmentNames = [
@@ -27,31 +26,90 @@ class StatusPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('실시간 장비 현황'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50.0),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(width: 20, height: 20, color: Colors.red),
+                const SizedBox(width: 10),
+                const Text(
+                  '예약불가',
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 20),
+                Container(width: 20, height: 20, color: Colors.blue),
+                const SizedBox(width: 10),
+                const Text(
+                  '예약 가능',
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      body: ListView.builder(
-        itemCount: equipmentNames.length,
-        itemBuilder: (context, index) {
-          final fullName = equipmentNames[index];
-          final displayName = fullName.split('(')[0];
-          final firebaseName = fullName.split('(')[1].replaceAll(')', '');
+      body: Center(
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          itemCount: equipmentNames.length,
+          itemBuilder: (context, index) {
+            final fullName = equipmentNames[index];
+            final displayName = fullName.split('(')[0];
+            final firebaseName = fullName.split('(')[1].replaceAll(')', '');
 
-          return FutureBuilder<bool>(
-            future: StatusController(ReservationService()).isEquipmentAvailable(firebaseName),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else {
-                final isAvailable = snapshot.data ?? false;
-                return EquipmentListItem(
-                  name: displayName,
-                  isAvailable: isAvailable,
-                );
-              }
-            },
-          );
-        },
+            return FutureBuilder<bool>(
+              future: StatusController(ReservationService()).isEquipmentAvailable(firebaseName),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else {
+                  final isAvailable = snapshot.data ?? false;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            displayName,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Image.asset(
+                          'assets/equipment_${index + 1}.png',
+                          width: 100,
+                          height: 80,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 100,
+                              height: 80,
+                              color: Colors.grey,
+                              child: const Icon(Icons.broken_image, color: Colors.white, size: 40),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 16),
+                        Container(
+                          width: 24,
+                          height: 24,
+                          color: isAvailable ? Colors.blue : Colors.red,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+            );
+          },
+        ),
       ),
     );
   }
